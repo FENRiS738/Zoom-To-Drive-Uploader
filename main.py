@@ -19,7 +19,7 @@ def upload_file():
 
     file_url = request.args['file_url']
     rclone_config = RCLONE_CONFIG_PATH
-    file_name = "test.jpg"
+    file_name = "test.mp4"
     destination = f'{DESTINATION_PATH}/{file_name}'
 
     command = [
@@ -27,7 +27,7 @@ def upload_file():
         'copyurl',
         file_url,
         destination,
-        '--config', 
+        '--config',
         rclone_config
     ]
 
