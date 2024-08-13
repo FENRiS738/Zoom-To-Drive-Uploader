@@ -1,5 +1,6 @@
 import os
 import subprocess
+import requests
 
 from flask import jsonify
 from zoomus import ZoomClient
@@ -10,6 +11,7 @@ load_dotenv()
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 ACCOUNT_ID = os.getenv('ACCOUNT_ID')
+WEBHOOK_URL = os.getenv('WEBHOOK_URL')
 
 
 def generate_token():
@@ -36,9 +38,23 @@ def background_upload(app, file_url, destination, rclone_config):
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         if result.returncode == 0:
-            return jsonify({'message':f'Successfully uploaded {file_url} to {destination}.'}), 200
+            call_webhook({
+                'message':f'Successfully uploaded {file_url} to {destination}.'
+                })
         else:
-            return jsonify({'message':f'Failed to upload {file_url}: {result.stderr.decode()}'}), 500
+            call_webhook({
+                'message':f'Failed to upload {file_url}: {result.stderr.decode()}'
+                })
+    
+
+def call_webhook(payload):
+    try:
+        webhook_url = WEBHOOK_URL 
+        result  = requests.post(webhook_url, json=payload)
+        result.raise_for_status()
+        return jsonify({"message": "Succesfully called webhook."}), 200
+    except Exception as ex:
+        return jsonify({"message": "Failed to call webhook.", "error": ex}), 400
     
 
 def main():

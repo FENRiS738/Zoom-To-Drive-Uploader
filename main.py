@@ -1,5 +1,4 @@
 import os
-import subprocess
 from threading import Thread
 
 from flask import Flask, request, jsonify
@@ -40,6 +39,7 @@ def upload_file():
             "message" : "Something went wrong",
             "error" : ex
         }), 400
+
 
 if __name__ == '__main__':
     app.run(debug=True)
