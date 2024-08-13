@@ -1,10 +1,11 @@
 import os
 import subprocess
+from threading import Thread
 
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
-from zoom_utils import generate_token, get_downloadable_url
+from zoom_utils import generate_token, get_downloadable_url, background_upload
 
 load_dotenv()
 
@@ -19,32 +20,26 @@ def root():
 
 @app.get('/upload')
 def upload_file():
-    file_id = request.args['file_id']
-    file_name = request.args['file_name']
-    
-    rclone_config = RCLONE_CONFIG_PATH
-    file_name = f"{file_name}.mp4"
-    destination = f'{DESTINATION_PATH}/{file_name}'
-    
-    token = generate_token()
-    file_url = get_downloadable_url(token, file_id)
+    try: 
+        file_id = request.args['file_id']
+        file_name = request.args['file_name']
+        
+        rclone_config = RCLONE_CONFIG_PATH
+        file_name = f"{file_name}.mp4"
+        destination = f'{DESTINATION_PATH}/{file_name}'
+        
+        token = generate_token()
+        file_url = get_downloadable_url(token, file_id)
 
-    command = [
-        'rclone',
-        'copyurl',
-        file_url,
-        destination,
-        '--config',
-        rclone_config
-    ]
+        background_task = Thread(target=background_upload,  args=(app, file_url, destination, rclone_config,))
+        background_task.start()
 
-    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    if result.returncode == 0:
-        return jsonify({'message':f'Successfully uploaded {file_url} to {destination}.'}), 200
-    else:
-        return jsonify({'message':f'Failed to upload {file_url}: {result.stderr.decode()}'}), 500
-    
+        return jsonify({"message": "Upload process started!"}), 200
+    except Exception as ex:
+        return jsonify({
+            "message" : "Something went wrong",
+            "error" : ex
+        }), 400
 
 if __name__ == '__main__':
     app.run(debug=True)
