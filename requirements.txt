@@ -2,3 +2,5 @@ Flask
 python-dotenv
 zoomus
 requests
+gunicorn
+celery
