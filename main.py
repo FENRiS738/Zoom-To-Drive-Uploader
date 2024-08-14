@@ -38,7 +38,7 @@ def upload_file():
         token = generate_token()
         file_url = get_downloadable_url(token, file_id)
 
-        backgroud_task = Thread(background_upload, args=(app, file_url, destination, rclone_config,))
+        backgroud_task = Thread(target=background_upload, args=(app, file_url, destination, rclone_config,))
         backgroud_task.start()
 
         return jsonify({"message": "Upload process started!"}), 200

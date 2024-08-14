@@ -25,26 +25,26 @@ def get_downloadable_url(token, recording_id):
 
 
 def background_upload(app, file_url, destination, rclone_config):
-    with app.app_context():
-        command = [
-            'rclone',
-            'copyurl',
-            file_url,
-            destination,
-            '--config',
-            rclone_config
-        ]
+        with app.app_context():
+            command = [
+                'rclone',
+                'copyurl',
+                file_url,
+                destination,
+                '--config',
+                rclone_config
+            ]
 
-        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        if result.returncode == 0:
-            call_webhook({
-                'message': f'Successfully uploaded {file_url} to {destination}.'
-            })
-        else:
-            call_webhook({
-                'message': f'Failed to upload {file_url}: {result.stderr.decode()}'
-            })
+            if result.returncode == 0:
+                call_webhook({
+                    'message': f'Successfully uploaded {file_url} to {destination}.'
+                })
+            else:
+                call_webhook({
+                    'message': f'Failed to upload {file_url}: {result.stderr.decode()}'
+                })
 
 def call_webhook(payload):
     try:
