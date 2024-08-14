@@ -4,7 +4,6 @@ import requests
 
 from flask import jsonify
 from dotenv import load_dotenv
-from celery_config import celery
 from zoomus import ZoomClient
 
 load_dotenv()
@@ -24,7 +23,7 @@ def get_downloadable_url(token, recording_id):
     download_url_with_token = f"{download_url}?access_token={token}"
     return download_url_with_token
 
-@celery.task
+
 def background_upload(file_url, destination, rclone_config):
     command = [
         'rclone',

@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from werkzeug.exceptions import HTTPException
 from logging.handlers import RotatingFileHandler
-from celery_config import celery
+from  threading import Thread
 from zoom_utils import generate_token, get_downloadable_url, background_upload
 
 load_dotenv()
@@ -12,8 +12,6 @@ load_dotenv()
 app = Flask(__name__)
 
 app.config.update(
-    CELERY_BROKER_URL=os.getenv('CELERY_BROKER_URL'),
-    CELERY_RESULT_BACKEND=os.getenv('CELERY_RESULT_BACKEND'),
     SECRET_KEY=os.getenv('SECRET_KEY'),
     SESSION_COOKIE_SECURE=False,
     SESSION_COOKIE_HTTPONLY=True,
@@ -40,7 +38,8 @@ def upload_file():
         token = generate_token()
         file_url = get_downloadable_url(token, file_id)
 
-        background_upload.delay(file_url, destination, rclone_config)
+        backgroud_task = Thread(background_upload, args=(app, file_url, destination, rclone_config,))
+        backgroud_task.start()
 
         return jsonify({"message": "Upload process started!"}), 200
     except Exception as ex:
